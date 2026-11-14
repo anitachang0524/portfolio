@@ -503,7 +503,12 @@ function pageHome() {
       <div><div class="k">累計總損益</div><div class="v ${cls(r.cumPL)}">${signed(r.cumPL)}</div></div>
       <div><div class="k">累計投報率</div><div class="v ${cls(r.cumRet)}">${spct(r.cumRet)}</div></div>
     </div>
-    <p class="hint">累計投報率＝（目前市值＋賣出收回＋配息借券－累計買進）÷ 累計買進，以成交匯率計成本。USD/TWD ${r.fxNow.toFixed(3)}</p>
+    <div class="suggest" style="margin-top:12px">
+      總資產 ${money(r.totalAssets)} ＝ 股票市值 ${money(r.plSum.mv - r.pl[2].mv)} ＋ 基金市值 ${money(r.pl[2].mv)} ＋ 帳戶現金 <span class="${r.cashTWD < 0 ? 'up' : ''}">${money(r.cashTWD)}</span>
+      <span class="muted">（美元以 USD/TWD ${r.fxNow.toFixed(3)} 換算${!connected() || (DB.prices['FX|USDTWD'] && DB.prices['FX|USDTWD'].fetched_at) ? '' : '，<b class="up">未取得即時匯率，使用備用匯率</b>'}）</span>
+    </div>
+    ${r.cash.some(a => a.bal < 0) ? `<div class="confirm" style="background:var(--warn-soft)"><span><b>帳戶現金是負數，總資產因此偏低。</b>交易已扣款但還沒記入金：到「資金」對每個帳戶按「餘額校正」，輸入券商顯示的現金餘額。</span><button class="btn sm" data-tab="cash">前往資金</button></div>` : ''}
+    <p class="hint">累計投報率＝（目前市值＋賣出收回＋配息借券－累計買進）÷ 累計買進，以成交匯率計成本。</p>
   </section>`;
 
   const own = r.cash.filter(a => a.active !== '0');
