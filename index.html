@@ -1,0 +1,1093 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="投資組合">
+<meta name="theme-color" content="#F2F3F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0D1015" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<style>[hidden]{display:none!important}img{max-width:100%}</style>
+<title>投資組合</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* 版面：單欄卡片流，手機底部分頁列；桌機置中最大 880px。紅漲綠跌（台灣慣例）。 */
+:root{
+  --bg:#F2F3F6; --surface:#FFFFFF; --surface-2:#ECEEF3; --fg:#141922; --muted:#5F6B7D; --line:#DFE3EA;
+  --accent:#3451D1; --accent-soft:rgba(52,81,209,.10); --up:#D3343C; --down:#0F8A55; --warn:#B86E00;
+  --warn-soft:rgba(184,110,0,.12); --up-soft:rgba(211,52,60,.10); --down-soft:rgba(15,138,85,.10);
+  --shadow:0 1px 2px rgba(20,25,34,.06),0 4px 14px rgba(20,25,34,.05);
+  --font:"Inter","PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D1015; --surface:#161A21; --surface-2:#1F242D; --fg:#E7EAF0; --muted:#97A1B2; --line:#2A313C;
+  --accent:#8199FF; --accent-soft:rgba(129,153,255,.14); --up:#FF6B70; --down:#3CCF8E; --warn:#F2B04A;
+  --warn-soft:rgba(242,176,74,.14); --up-soft:rgba(255,107,112,.12); --down-soft:rgba(60,207,142,.12);
+  --shadow:none; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0D1015; --surface:#161A21; --surface-2:#1F242D; --fg:#E7EAF0; --muted:#97A1B2; --line:#2A313C;
+  --accent:#8199FF; --accent-soft:rgba(129,153,255,.14); --up:#FF6B70; --down:#3CCF8E; --warn:#F2B04A;
+  --warn-soft:rgba(242,176,74,.14); --up-soft:rgba(255,107,112,.12); --down-soft:rgba(60,207,142,.12);
+  --shadow:none; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.45;margin:0;
+  -webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;-webkit-tap-highlight-color:transparent}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:30}
+
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:saturate(1.4) blur(12px);-webkit-backdrop-filter:saturate(1.4) blur(12px);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px}
+.top-in{max-width:880px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.top h1{font-size:20px;margin:0;font-weight:700;letter-spacing:.01em;flex:1}
+.stamp{font-size:12px;color:var(--muted);text-align:right;line-height:1.25}
+.iconbtn{border:1px solid var(--line);background:var(--surface);border-radius:999px;width:38px;height:38px;display:grid;place-items:center;flex:none}
+.iconbtn svg{width:18px;height:18px}
+.iconbtn.spin svg{animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.iconbtn.spin svg{animation:none}}
+
+main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:4px calc(92px + env(safe-area-inset-bottom,0px))}
+.page{max-width:880px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.ptr{height:0;overflow:hidden;text-align:center;color:var(--muted);font-size:13px;transition:height .15s}
+
+.banner{background:var(--warn-soft);color:var(--fg);border-radius:12px;padding:10px 12px;font-size:13px;display:flex;gap:8px;align-items:flex-start}
+.banner b{color:var(--warn);white-space:nowrap}
+.card{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;min-width:0;border:1px solid var(--line)}
+.card h2{font-size:15px;margin:0 0 12px;font-weight:600;display:flex;align-items:center;gap:8px}
+.card h2 .sub{font-weight:400;color:var(--muted);font-size:12.5px;margin-left:auto}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:14px}
+
+.hero .lbl{font-size:12.5px;color:var(--muted);letter-spacing:.04em}
+.hero .big{font-size:34px;font-weight:700;letter-spacing:-.01em;line-height:1.15;margin:2px 0 10px}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px 16px}
+.kv div{min-width:0}
+.kv .k{font-size:12px;color:var(--muted)}
+.kv .v{font-size:17px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kv .v small{font-size:12px;font-weight:500}
+.up{color:var(--up)} .down{color:var(--down)} .muted{color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;border-radius:999px;padding:2px 8px;white-space:nowrap}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.ok{background:var(--down-soft);color:var(--down)}
+.pill.acc{background:var(--accent-soft);color:var(--accent)}
+.pill.bad{background:var(--up-soft);color:var(--up)}
+
+.rows{display:flex;flex-direction:column}
+.row{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line);min-width:0}
+.row:first-child{border-top:0;padding-top:2px}
+.row .main{flex:1;min-width:0}
+.row .t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .s{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .r{text-align:right;flex:none}
+.row .r .t{font-weight:600}
+.row.total{font-weight:700}
+.row.tap{cursor:pointer}
+.row.tap:active{background:var(--surface-2)}
+
+.tblwrap{overflow-x:auto;margin:0 -16px;padding:0 16px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:620px}
+th,td{padding:8px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:12px;color:var(--muted);font-weight:500}
+th:first-child,td:first-child{text-align:left}
+tr.sum td{font-weight:700;border-bottom:0}
+
+.alloc{display:flex;flex-direction:column;gap:12px}
+.alloc h3{font-size:13.5px;margin:0;font-weight:600;display:flex;gap:8px;align-items:center}
+.bar{position:relative;height:12px;border-radius:6px;background:var(--surface-2);overflow:visible;display:flex}
+.bar span{height:100%}
+.bar span:first-child{border-radius:6px 0 0 6px}
+.bar span:last-child{border-radius:0 6px 6px 0}
+.bar .tgt{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--fg);border-radius:1px}
+.legend{display:grid;grid-template-columns:1fr auto auto auto;gap:4px 12px;font-size:13px;align-items:center}
+.legend .h{font-size:11.5px;color:var(--muted)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:0}
+.suggest{font-size:13px;background:var(--surface-2);border-radius:10px;padding:10px 12px}
+.newmoney{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.newmoney input{flex:1;min-width:140px}
+
+.chart svg{width:100%;height:auto;display:block}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:12px}
+.stat{background:var(--surface-2);border-radius:10px;padding:10px 12px;min-width:0}
+.stat .k{font-size:12px;color:var(--muted)}
+.stat .v{font-size:17px;font-weight:650;white-space:nowrap}
+
+.seg{display:inline-flex;background:var(--surface-2);border-radius:10px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;background:transparent;padding:6px 12px;border-radius:8px;font-size:13.5px;color:var(--muted)}
+.seg button.on{background:var(--surface);color:var(--fg);font-weight:600;box-shadow:var(--shadow)}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.toolbar .grow{flex:1}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 14px;font-weight:600;font-size:14px}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.danger{color:var(--up);border-color:color-mix(in srgb,var(--up) 40%,var(--line))}
+.btn.sm{padding:5px 10px;font-size:13px}
+.btn:disabled{opacity:.5}
+select.inp,input.inp{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 11px;font-size:15px;min-width:0}
+input.inp::placeholder{color:var(--muted);opacity:.75}
+.empty{color:var(--muted);font-size:13.5px;padding:8px 0}
+
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:25;background:color-mix(in srgb,var(--surface) 92%,transparent);
+  backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+nav.tabs .in{max-width:880px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav.tabs button{border:0;background:none;padding:8px 0 7px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--muted)}
+nav.tabs button svg{width:22px;height:22px}
+nav.tabs button.on{color:var(--accent);font-weight:600}
+
+.sheet-bg{position:fixed;inset:0;background:rgba(10,12,16,.45);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:560px;max-height:92%;overflow:auto;border-radius:18px 18px 0 0;
+  padding:16px max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+@media (min-width:700px){.sheet-bg{align-items:center}.sheet{border-radius:18px;padding-bottom:20px}}
+.sheet h3{margin:0 0 12px;font-size:17px;display:flex;align-items:center;gap:8px}
+.sheet h3 .x{margin-left:auto}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.form .f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.form .f.full{grid-column:1/-1}
+.form label{font-size:12.5px;color:var(--muted)}
+.preview{grid-column:1/-1;font-size:13px;background:var(--accent-soft);border-radius:10px;padding:9px 12px}
+.actions{display:flex;gap:10px;margin-top:14px}
+.actions .grow{flex:1}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:13px}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:50;
+  background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:13.5px;max-width:90%;box-shadow:var(--shadow)}
+.hint{font-size:12.5px;color:var(--muted);margin:6px 0 0}
+.confirm{background:var(--up-soft);border-radius:10px;padding:10px 12px;font-size:13.5px;margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <h1 id="ttl">總覽</h1>
+  <div class="stamp" id="stamp"></div>
+  <button class="iconbtn" id="refreshBtn" aria-label="重新整理股價">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+  </button>
+</div></header>
+<main id="main"><div class="ptr" id="ptr">放開以更新股價</div><div class="page" id="page"></div></main>
+<nav class="tabs" aria-label="分頁"><div class="in" id="tabs"></div></nav>
+<div id="layer"></div>
+
+<script>
+'use strict';
+/* ================= 基本工具 ================= */
+const TABLES = ['accounts','trades','fund_trades','funds','dividends','lending','cash_flows','loans','symbols','targets','params','prices'];
+const $ = s => document.querySelector(s);
+const num = v => { if (v === '' || v === null || v === undefined) return 0; const n = Number(String(v).replace(/,/g,'')); return isFinite(n) ? n : 0; };
+const blank = v => v === '' || v === null || v === undefined;
+const round2 = n => Math.round(n * 100) / 100;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'id-' + Date.now().toString(36) + Math.random().toString(36).slice(2));
+const pad = n => String(n).padStart(2,'0');
+const dstr = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const today = () => dstr(new Date());
+const addMonths = (s, m) => { const [y,mo,d] = s.split('-').map(Number); const dt = new Date(y, mo-1+m, d); return dstr(dt); };
+const monthsBetween = (a, b) => { if (!a || !b || b < a) return 0; const [ay,am,ad] = a.split('-').map(Number), [by,bm,bd] = b.split('-').map(Number); return (by-ay)*12 + (bm-am) - (bd < ad ? 1 : 0); };
+const nf = (n, d=0) => Number(n || 0).toLocaleString('zh-TW', {minimumFractionDigits:d, maximumFractionDigits:d});
+const money = (n, cur='TWD') => (cur === 'USD' ? 'US$' + nf(n, 2) : nf(Math.round(n)));
+const signed = (n, cur='TWD') => (n > 0 ? '+' : n < 0 ? '−' : '') + money(Math.abs(n), cur);
+const pct = (n, d=1) => (isFinite(n) ? (n*100).toFixed(d) + '%' : '—');
+const spct = n => (n > 0 ? '+' : n < 0 ? '−' : '') + pct(Math.abs(n));
+const cls = n => n > 0 ? 'up' : n < 0 ? 'down' : '';
+const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+
+/* ================= 狀態 ================= */
+let DB = {};            // table -> { id -> row }
+let CFG = lsGet('pf_cfg', { apiUrl:'', token:'', lastSync:'', lastQuote:'' });
+let OUTBOX = lsGet('pf_outbox', []);
+let UI = { tab: 'home', holdTab: 'stock', holdAcct: '', recFilter: 'all', newMoney: '' };
+const connected = () => !!(CFG.apiUrl && CFG.token);
+
+function loadDB() {
+  const saved = lsGet('pf_db', null);
+  DB = {}; TABLES.forEach(t => DB[t] = {});
+  if (saved) TABLES.forEach(t => DB[t] = saved[t] || {});
+  else if (!connected()) loadDemo();
+}
+function persist() { lsSet('pf_db', DB); lsSet('pf_cfg', CFG); lsSet('pf_outbox', OUTBOX); }
+const rows = t => Object.values(DB[t] || {}).filter(r => r.deleted !== '1');
+const kv = t => { const o = {}; rows(t).forEach(r => o[r.key] = r.value); return o; };
+
+/* ================= 計算引擎 ================= */
+function symOverride(market, symbol) { return rows('symbols').find(s => s.market === market && String(s.symbol).toUpperCase() === String(symbol).toUpperCase()); }
+function taxType(market, symbol) {
+  const o = symOverride(market, symbol); if (o && o.tax_type) return o.tax_type;
+  if (market !== 'TW') return '-';
+  const s = String(symbol).toUpperCase();
+  return s.endsWith('B') ? '債券ETF' : s.startsWith('00') ? 'ETF' : '股票';
+}
+function assetClass(market, symbol) {
+  const o = symOverride(market, symbol); if (o && o.asset_class) return o.asset_class;
+  return market === 'TW' && String(symbol).toUpperCase().endsWith('B') ? '債' : '股';
+}
+function symName(market, symbol) {
+  const o = symOverride(market, symbol); if (o && o.name) return o.name;
+  const p = DB.prices[`${market}|${symbol}`]; return (p && p.name) || symbol;
+}
+function quotePrice(market, symbol) {
+  const o = symOverride(market, symbol); if (o && !blank(o.manual_price)) return { price: num(o.manual_price), manual: true };
+  const p = DB.prices[`${market}|${symbol}`]; return p && num(p.price) ? { price: num(p.price), at: p.fetched_at } : null;
+}
+
+function deriveTrade(t, P, fxNow) {
+  const acct = DB.accounts[t.account_id];
+  const tw = t.market === 'TW', qty = num(t.qty), price = num(t.price), gross = qty * price;
+  let fee;
+  if (!blank(t.fee)) fee = num(t.fee);
+  else if (price === 0) fee = 0;
+  else {
+    const rate = acct && !blank(acct.fee_rate) ? num(acct.fee_rate) : (tw ? num(P.tw_fee_rate) : 0);
+    const disc = acct && !blank(acct.fee_discount) ? num(acct.fee_discount) : 1;
+    const min = acct && !blank(acct.fee_min) ? num(acct.fee_min) : (tw ? num(P.tw_fee_min) : 0);
+    const raw = gross * rate * disc;
+    fee = Math.max(min, tw ? Math.floor(raw) : round2(raw));
+  }
+  let tax = 0;
+  if (!blank(t.tax)) tax = num(t.tax);
+  else if (tw && t.side === 'sell') {
+    const tt = taxType('TW', t.symbol);
+    const r = tt === 'ETF' ? num(P.tax_etf) : tt === '債券ETF' ? num(P.tax_bond_etf) : num(P.tax_stock);
+    tax = Math.floor(gross * r);
+  }
+  const total = t.side === 'buy' ? gross + fee : gross - fee - tax;
+  const cur = tw ? 'TWD' : 'USD';
+  const fx = cur === 'USD' ? (num(t.fx_rate) || fxNow) : 1;
+  return { ...t, qty, price, gross, fee, tax, total, cur, fx, twd: total * fx, key: `${t.market}|${String(t.symbol).toUpperCase()}`, symbol: String(t.symbol).toUpperCase() };
+}
+
+function compute() {
+  const P = kv('params'), T = kv('targets');
+  const fxNow = num(DB.prices['FX|USDTWD'] && DB.prices['FX|USDTWD'].price) || num(P.fx_fallback) || 32;
+  const fxOf = cur => cur === 'USD' ? fxNow : 1;
+  const td = today(), year = td.slice(0,4), elapsed = Number(td.slice(5,7));
+  const accounts = rows('accounts').sort((a,b) => num(a.sort) - num(b.sort) || String(a.name).localeCompare(b.name));
+  const funds = rows('funds');
+  const fundById = {}; funds.forEach(f => fundById[f.id] = f);
+
+  const trades = rows('trades').map(t => deriveTrade(t, P, fxNow)).sort((a,b) => a.date < b.date ? -1 : 1);
+  const fundTrades = rows('fund_trades').map(t => {
+    const f = fundById[t.fund_id] || {}; const units = num(t.units), nav = num(t.nav), fee = num(t.fee);
+    const total = t.side === 'sub' ? units*nav + fee : units*nav - fee;
+    const cur = f.currency || 'TWD'; const fx = cur === 'USD' ? (num(t.fx_rate) || fxNow) : 1;
+    return { ...t, units, nav, fee, total, cur, fx, twd: total*fx };
+  });
+
+  const qtyBefore = (market, symbol, acctId, date) => trades.reduce((s, t) =>
+    (t.market === market && t.symbol === String(symbol).toUpperCase() && (!acctId || t.account_id === acctId) && t.date < date)
+      ? s + (t.side === 'buy' ? t.qty : -t.qty) : s, 0);
+  const unitsBefore = (fundId, acctId, date) => fundTrades.reduce((s, t) =>
+    (t.fund_id === fundId && (!acctId || t.account_id === acctId) && t.date < date) ? s + (t.side === 'sub' ? t.units : -t.units) : s, 0);
+
+  const dividends = rows('dividends').map(d => {
+    const isFund = d.kind === 'fund'; const f = isFund ? (fundById[d.fund_id] || {}) : null;
+    const cur = isFund ? (f.currency || 'TWD') : (d.market === 'US' ? 'USD' : 'TWD');
+    const qty = !blank(d.qty_override) ? num(d.qty_override) : (isFund ? unitsBefore(d.fund_id, d.account_id, d.ex_date) : qtyBefore(d.market, d.symbol, d.account_id, d.ex_date));
+    const gross = qty * num(d.per_share);
+    const twStock = !isFund && d.market === 'TW';
+    const nhi = !blank(d.nhi) ? num(d.nhi) : (twStock && gross >= num(P.nhi_min) ? Math.round(gross * num(P.nhi_rate)) : 0);
+    const wht = !blank(d.withholding) ? num(d.withholding) : (!isFund && d.market === 'US' ? round2(gross * num(P.us_wht)) : 0);
+    const remit = !blank(d.remit_fee) ? num(d.remit_fee) : (twStock && gross > 0 ? num(P.remit_fee) : 0);
+    const net = gross - nhi - wht - remit;
+    const fx = cur === 'USD' ? (num(d.fx_rate) || fxNow) : 1;
+    return { ...d, symbol: String(d.symbol || '').toUpperCase(), qty, gross, nhi, wht, remit, net, cur, fx, twd: net*fx, pay: d.pay_date || d.ex_date };
+  });
+  const lending = rows('lending').map(l => { const net = num(l.gross) - num(l.fee) - num(l.tax); return { ...l, symbol: String(l.symbol).toUpperCase(), net, twd: net }; });
+
+  // 持股
+  function buildHoldings(acctId) {
+    const H = {};
+    trades.filter(t => !acctId || t.account_id === acctId).forEach(t => {
+      const h = H[t.key] || (H[t.key] = { key: t.key, market: t.market, symbol: t.symbol, buyQty:0, buyCost:0, sellQty:0, sellNet:0 });
+      if (t.side === 'buy') { h.buyQty += t.qty; h.buyCost += t.total; } else { h.sellQty += t.qty; h.sellNet += t.total; }
+    });
+    return Object.values(H).map(h => {
+      const cur = h.market === 'US' ? 'USD' : 'TWD';
+      const avg = h.buyQty ? h.buyCost / h.buyQty : 0;
+      const qty = h.buyQty - h.sellQty, cost = qty * avg;
+      const q = quotePrice(h.market, h.symbol);
+      const price = q ? q.price : null;
+      const mv = price !== null ? qty * price : cost;
+      const unreal = price !== null ? mv - cost : 0;
+      const realized = h.sellNet - h.sellQty * avg;
+      const div = dividends.filter(d => d.kind !== 'fund' && d.market === h.market && d.symbol === h.symbol && (!acctId || d.account_id === acctId)).reduce((s,d) => s + d.net, 0);
+      const lend = h.market === 'TW' ? lending.filter(l => l.symbol === h.symbol && (!acctId || l.account_id === acctId)).reduce((s,l) => s + l.net, 0) : 0;
+      const fx = fxOf(cur);
+      return { ...h, cur, avg, qty, cost, price, priced: price !== null, manual: q && q.manual, mv, unreal, realized, div, lend,
+        totalPL: unreal + realized + div + lend, ret: cost ? unreal / cost : 0, retAll: h.buyCost ? (unreal + realized + div + lend) / h.buyCost : 0,
+        fx, mvTWD: mv*fx, costTWD: cost*fx, unrealTWD: unreal*fx, realizedTWD: realized*fx,
+        name: symName(h.market, h.symbol), cls: assetClass(h.market, h.symbol) };
+    }).sort((a,b) => b.mvTWD - a.mvTWD);
+  }
+  const holdings = buildHoldings('');
+
+  const fundHoldings = funds.map(f => {
+    const ft = fundTrades.filter(t => t.fund_id === f.id);
+    const subU = ft.filter(t => t.side === 'sub').reduce((s,t) => s + t.units, 0);
+    const subC = ft.filter(t => t.side === 'sub').reduce((s,t) => s + t.total, 0);
+    const redU = ft.filter(t => t.side === 'red').reduce((s,t) => s + t.units, 0);
+    const redN = ft.filter(t => t.side === 'red').reduce((s,t) => s + t.total, 0);
+    const avg = subU ? subC / subU : 0, units = subU - redU, cost = units * avg;
+    const nav = num(f.latest_nav), mv = nav ? units * nav : cost, unreal = nav ? mv - cost : 0, realized = redN - redU * avg;
+    const div = dividends.filter(d => d.kind === 'fund' && d.fund_id === f.id).reduce((s,d) => s + d.net, 0);
+    const cur = f.currency || 'TWD', fx = fxOf(cur);
+    return { ...f, cur, units, avg, cost, nav, mv, unreal, realized, div, ret: cost ? unreal/cost : 0,
+      fx, mvTWD: mv*fx, costTWD: cost*fx, unrealTWD: unreal*fx, realizedTWD: realized*fx, divTWD: div*fx };
+  }).sort((a,b) => b.mvTWD - a.mvTWD);
+
+  // 帳戶現金
+  const bal = {}; accounts.forEach(a => bal[a.id] = 0);
+  const add = (id, amount, cur, fx) => {
+    const a = DB.accounts[id]; if (!a || a.deleted === '1') return;
+    let v = amount; if ((a.currency || 'TWD') !== cur) v = a.currency === 'TWD' ? amount * fx : amount / (fx || fxNow);
+    bal[id] = (bal[id] || 0) + v;
+  };
+  trades.forEach(t => add(t.account_id, t.side === 'buy' ? -t.total : t.total, t.cur, t.fx));
+  fundTrades.forEach(t => add(t.account_id, t.side === 'sub' ? -t.total : t.total, t.cur, t.fx));
+  dividends.forEach(d => add(d.account_id, d.net, d.cur, d.fx));
+  lending.forEach(l => add(l.account_id, l.net, 'TWD', 1));
+  const flows = rows('cash_flows').map(c => {
+    const from = DB.accounts[c.from_account_id], to = DB.accounts[c.to_account_id];
+    const fromCur = from ? from.currency : 'TWD', toCur = to ? to.currency : 'TWD';
+    const fx = num(c.fx_rate) || fxNow;
+    let amtTo = num(c.amount_to);
+    if (c.type === 'deposit' && !amtTo) amtTo = num(c.amount_from);
+    if (c.type === 'transfer' && !amtTo) amtTo = fromCur === toCur ? num(c.amount_from) : (fromCur === 'TWD' ? num(c.amount_from) / fx : num(c.amount_from) * fx);
+    if (c.type === 'deposit') bal[c.to_account_id] = (bal[c.to_account_id] || 0) + amtTo;
+    if (c.type === 'withdraw') bal[c.from_account_id] = (bal[c.from_account_id] || 0) - num(c.amount_from);
+    if (c.type === 'transfer') { bal[c.from_account_id] = (bal[c.from_account_id] || 0) - num(c.amount_from); bal[c.to_account_id] = (bal[c.to_account_id] || 0) + amtTo; }
+    return { ...c, amtTo, toCur, fromCur, fx };
+  });
+  const cash = accounts.map(a => ({ ...a, bal: bal[a.id] || 0, balTWD: (bal[a.id] || 0) * fxOf(a.currency) }));
+  const cashTWD = cash.reduce((s,a) => s + a.balTWD, 0);
+
+  // 損益分類（目前匯率）
+  const byMkt = m => holdings.filter(h => h.market === m);
+  const sum = (arr, k) => arr.reduce((s,x) => s + x[k], 0);
+  const divTWD = k => dividends.filter(k).reduce((s,d) => s + d.twd, 0);
+  const pl = [
+    { name:'台股', cost: sum(byMkt('TW'),'costTWD'), mv: sum(byMkt('TW'),'mvTWD'), unreal: sum(byMkt('TW'),'unrealTWD'), realized: sum(byMkt('TW'),'realizedTWD'),
+      div: divTWD(d => d.kind !== 'fund' && d.market === 'TW'), lend: lending.reduce((s,l) => s + l.twd, 0) },
+    { name:'美股', cost: sum(byMkt('US'),'costTWD'), mv: sum(byMkt('US'),'mvTWD'), unreal: sum(byMkt('US'),'unrealTWD'), realized: sum(byMkt('US'),'realizedTWD'),
+      div: divTWD(d => d.kind !== 'fund' && d.market === 'US'), lend: 0 },
+    { name:'基金', cost: sum(fundHoldings,'costTWD'), mv: sum(fundHoldings,'mvTWD'), unreal: sum(fundHoldings,'unrealTWD'), realized: sum(fundHoldings,'realizedTWD'),
+      div: divTWD(d => d.kind === 'fund'), lend: 0 },
+  ].map(r => ({ ...r, total: r.unreal + r.realized + r.div + r.lend }));
+  pl.forEach(r => r.ret = r.cost ? r.total / r.cost : 0);
+  const plSum = ['cost','mv','unreal','realized','div','lend','total'].reduce((o,k) => (o[k] = sum(pl,k), o), { name:'合計' });
+  plSum.ret = plSum.cost ? plSum.total / plSum.cost : 0;
+
+  // 累計投入（成交匯率）
+  const buyTWD = trades.filter(t => t.side === 'buy').reduce((s,t) => s + t.twd, 0) + fundTrades.filter(t => t.side === 'sub').reduce((s,t) => s + t.twd, 0);
+  const sellTWD = trades.filter(t => t.side === 'sell').reduce((s,t) => s + t.twd, 0) + fundTrades.filter(t => t.side === 'red').reduce((s,t) => s + t.twd, 0);
+  const incomeTWD = dividends.reduce((s,d) => s + d.twd, 0) + lending.reduce((s,l) => s + l.twd, 0);
+  const mvTWD = plSum.mv;
+  const cumPL = mvTWD + sellTWD + incomeTWD - buyTWD;
+  const cumRet = buyTWD ? cumPL / buyTWD : 0;
+
+  // 借款
+  const loans = rows('loans').map(l => {
+    const principal = num(l.principal), rate = num(l.rate) / 100;
+    const fromFlows = flows.filter(c => c.type === 'deposit' && c.source === '借款' && c.loan_id === l.id)
+      .reduce((s,c) => s + c.amtTo * (c.toCur === 'USD' ? (num(c.fx_rate) || fxNow) : 1), 0);
+    const invested = !blank(l.invested_amount) ? num(l.invested_amount) : fromFlows;
+    const endD = l.end_date && l.end_date < td ? l.end_date : td;
+    const monthsPaid = l.start_date && l.start_date <= td ? monthsBetween(l.start_date, endD) : 0;
+    const monthly = Math.round(principal * rate / 12);
+    const paid = !blank(l.interest_paid_override) ? num(l.interest_paid_override) : monthly * monthsPaid;
+    return { ...l, principal, rate, invested, uninvested: Math.max(0, principal - invested), progress: principal ? invested/principal : 0, monthly, monthsPaid, paid, annual: principal * rate };
+  });
+  const loanSum = ['principal','invested','uninvested','paid','annual'].reduce((o,k) => (o[k] = sum(loans,k), o), {});
+  loanSum.progress = loanSum.principal ? loanSum.invested / loanSum.principal : 0;
+  loanSum.afterPL = loanSum.invested * cumRet - loanSum.paid;
+  loanSum.afterRet = loanSum.invested ? loanSum.afterPL / loanSum.invested : 0;
+  const y1 = addMonths(td, -12);
+  loanSum.income12 = dividends.filter(d => d.pay >= y1 && d.pay <= td).reduce((s,d) => s + d.twd, 0) + lending.filter(l => l.date >= y1 && l.date <= td).reduce((s,l) => s + l.twd, 0);
+  loanSum.coverage = loanSum.annual ? loanSum.income12 / loanSum.annual : 0;
+
+  // 今年投入
+  const monthsNet = Array(12).fill(0);
+  trades.filter(t => t.date && t.date.startsWith(year)).forEach(t => monthsNet[Number(t.date.slice(5,7)) - 1] += t.side === 'buy' ? t.twd : -t.twd);
+  fundTrades.filter(t => t.date && t.date.startsWith(year)).forEach(t => monthsNet[Number(t.date.slice(5,7)) - 1] += t.side === 'sub' ? t.twd : -t.twd);
+  const ytd = monthsNet.reduce((s,v) => s + v, 0);
+  const target = num(T.monthly_invest);
+  const invest = { year, months: monthsNet, elapsed, ytd, avg: ytd / elapsed, target,
+    achieve: target ? ytd / (target * elapsed) : 0, remaining: target * 12 - ytd,
+    remainingMonthly: (target * 12 - ytd) / (12 - elapsed + 1) };
+
+  // 資產配置
+  const band = num(T.band_pct || 5) / 100;
+  const group = (title, cats) => {
+    const total = cats.reduce((s,c) => s + c.value, 0);
+    const tsum = cats.reduce((s,c) => s + c.target, 0) || 1;
+    const items = cats.map(c => {
+      const p = total ? c.value / total : 0, t = c.target / tsum;
+      const dev = p - t;
+      return { ...c, pct: p, tgt: t, dev, flag: total > 0 && Math.abs(dev) > band, suggest: total * t - c.value };
+    });
+    return { title, total, items, flagged: items.some(i => i.flag) };
+  };
+  const twVal = sum(byMkt('TW'),'mvTWD') + fundHoldings.filter(f => f.region === '台').reduce((s,f) => s + f.mvTWD, 0);
+  const usVal = sum(byMkt('US'),'mvTWD') + fundHoldings.filter(f => f.region === '美').reduce((s,f) => s + f.mvTWD, 0);
+  const stVal = holdings.filter(h => h.cls === '股').reduce((s,h) => s + h.mvTWD, 0) + fundHoldings.filter(f => f.asset_class !== '債').reduce((s,f) => s + f.mvTWD, 0);
+  const bdVal = holdings.filter(h => h.cls === '債').reduce((s,h) => s + h.mvTWD, 0) + fundHoldings.filter(f => f.asset_class === '債').reduce((s,f) => s + f.mvTWD, 0);
+  const alloc = [
+    group('台股 / 美股', [{ label:'台股', value: twVal, target: num(T.tw_pct), color:'var(--accent)' }, { label:'美股', value: usVal, target: num(T.us_pct), color:'var(--warn)' }]),
+    group('股 / 債', [{ label:'股', value: stVal, target: num(T.stock_pct), color:'var(--accent)' }, { label:'債', value: bdVal, target: num(T.bond_pct), color:'var(--muted)' }]),
+  ];
+  const globalFunds = fundHoldings.filter(f => f.region === '全球').reduce((s,f) => s + f.mvTWD, 0);
+
+  const totalAssets = mvTWD + cashTWD;
+  return { P, T, fxNow, accounts, funds, trades, fundTrades, dividends, lending, flows, holdings, buildHoldings, fundHoldings,
+    cash, cashTWD, pl, plSum, buyTWD, sellTWD, incomeTWD, cumPL, cumRet, loans, loanSum, invest, alloc, band, globalFunds,
+    totalAssets, netAssets: totalAssets - loanSum.principal, mvTWD };
+}
+
+/* ================= 渲染：共用 ================= */
+const ICONS = {
+  home:'<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>',
+  hold:'<path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19H2"/>',
+  rec:'<path d="M12 5v14"/><path d="M5 12h14"/>',
+  cash:'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><path d="M16 15h2"/>',
+  set:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+};
+const TABDEF = [['home','總覽'],['hold','持股'],['rec','紀錄'],['cash','資金'],['set','設定']];
+function renderTabs() {
+  $('#tabs').innerHTML = TABDEF.map(([k,l]) => `<button data-tab="${k}" class="${UI.tab === k ? 'on' : ''}" aria-label="${l}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[k]}</svg>${l}</button>`).join('');
+}
+function stampText() {
+  if (!CFG.lastQuote) return connected() ? '尚未更新股價' : '示範模式';
+  const d = new Date(CFG.lastQuote);
+  return `股價 ${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+let R = null;
+function render() {
+  R = compute();
+  renderTabs();
+  $('#ttl').textContent = TABDEF.find(t => t[0] === UI.tab)[1];
+  $('#stamp').textContent = stampText();
+  const pages = { home: pageHome, hold: pageHold, rec: pageRec, cash: pageCash, set: pageSet };
+  const banner = connected() ? (OUTBOX.length ? `<div class="banner"><b>待上傳</b><span>${OUTBOX.length} 筆變更尚未同步，連上網路後按右上角重新整理。</span></div>` : '')
+    : `<div class="banner"><b>示範模式</b><span>畫面上是範例資料與範例價格。到「設定 → 連線」填入 Apps Script 網址與金鑰後，改用你的資料。</span></div>`;
+  $('#page').innerHTML = banner + pages[UI.tab]();
+}
+function toast(msg, ms=2400) {
+  const el = document.createElement('div'); el.className = 'toast'; el.textContent = msg; document.body.appendChild(el);
+  setTimeout(() => el.remove(), ms);
+}
+const acctName = id => (DB.accounts[id] && DB.accounts[id].name) || '（未指定帳戶）';
+const fundName = id => (DB.funds[id] && DB.funds[id].name) || '（未知基金）';
+
+/* ================= 總覽 ================= */
+function pageHome() {
+  const r = R;
+  const hero = `<section class="card hero">
+    <div class="lbl">淨資產（新台幣）</div>
+    <div class="big">${money(r.netAssets)}</div>
+    <div class="kv">
+      <div><div class="k">總資產</div><div class="v">${money(r.totalAssets)}</div></div>
+      <div><div class="k">借款餘額</div><div class="v">${money(r.loanSum.principal)}</div></div>
+      <div><div class="k">累計總損益</div><div class="v ${cls(r.cumPL)}">${signed(r.cumPL)}</div></div>
+      <div><div class="k">累計投報率</div><div class="v ${cls(r.cumRet)}">${spct(r.cumRet)}</div></div>
+    </div>
+    <p class="hint">累計投報率＝（目前市值＋賣出收回＋配息借券－累計買進）÷ 累計買進，以成交匯率計成本。USD/TWD ${r.fxNow.toFixed(3)}</p>
+  </section>`;
+
+  const own = r.cash.filter(a => a.active !== '0');
+  const cashCard = `<section class="card"><h2>可投資餘額<span class="sub">依帳戶</span></h2><div class="rows">
+    ${own.map(a => `<div class="row"><div class="main"><div class="t">${esc(a.name)}</div><div class="s">${esc(a.type || '')} · ${a.currency}</div></div>
+      <div class="r"><div class="t ${a.bal < 0 ? 'up' : ''}">${money(a.bal, a.currency)}</div>${a.currency === 'USD' ? `<div class="s">≈ ${money(a.balTWD)}</div>` : ''}</div></div>`).join('') || '<div class="empty">尚未設定帳戶，到「設定 → 帳戶」新增。</div>'}
+    <div class="row total"><div class="main">自有現金合計</div><div class="r">${money(r.cashTWD)}</div></div>
+    ${r.loans.length ? `<div class="row"><div class="main"><div class="t">借款未投入</div><div class="s">另列，不含在自有現金</div></div><div class="r"><div class="t">${money(r.loanSum.uninvested)}</div></div></div>` : ''}
+  </div>${own.some(a => a.bal < 0) ? '<p class="hint"><span class="up">紅字帳戶為負數</span>：可能漏記入金，或用「資金 → 餘額校正」對齊實際餘額。</p>' : ''}</section>`;
+
+  const iv = r.invest;
+  const investCard = `<section class="card"><h2>${iv.year} 年每月淨投入<span class="sub">買進－賣出，含基金</span></h2>
+    <div class="chart">${investChart(iv)}</div>
+    <div class="stats">
+      <div class="stat"><div class="k">今年淨投入</div><div class="v">${money(iv.ytd)}</div></div>
+      <div class="stat"><div class="k">每月平均（÷${iv.elapsed} 個月）</div><div class="v">${money(iv.avg)}</div></div>
+      <div class="stat"><div class="k">目標達成率</div><div class="v" style="${iv.target && iv.achieve >= 1 ? 'color:var(--accent)' : ''}">${iv.target ? pct(iv.achieve, 0) : '未設定'}</div></div>
+      <div class="stat"><div class="k">年度剩餘額度</div><div class="v">${!iv.target ? '—' : iv.remaining <= 0 ? '已達成' : money(iv.remaining)}</div></div>
+      <div class="stat"><div class="k">剩餘每月需投入</div><div class="v">${iv.target ? money(Math.max(0, iv.remainingMonthly)) : '—'}</div></div>
+    </div></section>`;
+
+  const allocCard = `<section class="card"><h2>資產配置與再平衡<span class="sub">容許 ±${nf(r.band*100)}%，不含現金</span></h2>
+    <div class="alloc">${r.alloc.map(allocBlock).join('')}</div>
+    ${r.globalFunds ? `<p class="hint">全球型基金 ${money(r.globalFunds)} 不計入台美比。</p>` : ''}
+    <div style="margin-top:14px"><div class="newmoney"><input class="inp" id="newMoney" inputmode="numeric" placeholder="輸入這次要投入的金額" value="${esc(UI.newMoney)}"><button class="btn" data-act="calcNew">試算分配</button></div>
+    <div id="newMoneyOut">${newMoneyOut()}</div></div></section>`;
+
+  const p = r.pl, s = r.plSum;
+  const plRow = (x, sumRow) => `<tr class="${sumRow ? 'sum' : ''}"><td>${x.name}</td><td>${money(x.cost)}</td><td>${money(x.mv)}</td><td class="${cls(x.unreal)}">${signed(x.unreal)}</td><td class="${cls(x.realized)}">${signed(x.realized)}</td><td>${money(x.div)}</td><td>${money(x.lend)}</td><td class="${cls(x.total)}">${signed(x.total)}</td><td class="${cls(x.ret)}">${spct(x.ret)}</td></tr>`;
+  const usd = r.holdings.filter(h => h.market === 'US');
+  const usdCost = usd.reduce((a,h) => a + h.cost, 0), usdMv = usd.reduce((a,h) => a + h.mv, 0), usdUn = usd.reduce((a,h) => a + h.unreal, 0), usdRe = usd.reduce((a,h) => a + h.realized, 0);
+  const usdDiv = r.dividends.filter(d => d.kind !== 'fund' && d.market === 'US').reduce((a,d) => a + d.net, 0);
+  const plCard = `<section class="card"><h2>損益明細<span class="sub">新台幣，目前匯率</span></h2>
+    <div class="tblwrap"><table><thead><tr><th>類別</th><th>持有成本</th><th>市值</th><th>未實現</th><th>已實現</th><th>配息</th><th>借券</th><th>總損益</th><th>報酬率</th></tr></thead>
+    <tbody>${p.map(x => plRow(x)).join('')}${plRow(s, true)}</tbody></table></div>
+    ${usd.length ? `<p class="hint">美股原幣：成本 ${money(usdCost,'USD')}，市值 ${money(usdMv,'USD')}，未實現 <span class="${cls(usdUn)}">${signed(usdUn,'USD')}</span>，已實現 <span class="${cls(usdRe)}">${signed(usdRe,'USD')}</span>，配息 ${money(usdDiv,'USD')}</p>` : ''}
+  </section>`;
+
+  const L = r.loanSum;
+  const loanCard = r.loans.length ? `<section class="card"><h2>借款投資<span class="sub">只繳利息，利息由其他帳戶支付</span></h2>
+    <div class="bar" style="margin:4px 0 10px"><span style="width:${Math.min(100, L.progress*100)}%;background:var(--accent)"></span></div>
+    <div class="kv">
+      <div><div class="k">動用進度</div><div class="v">${pct(L.progress)}</div></div>
+      <div><div class="k">已投入</div><div class="v">${money(L.invested)}</div></div>
+      <div><div class="k">年利息</div><div class="v">${money(L.annual)}</div></div>
+      <div><div class="k">累計已付利息</div><div class="v">${money(L.paid)}</div></div>
+      <div><div class="k">扣息後淨損益</div><div class="v ${cls(L.afterPL)}">${signed(L.afterPL)}</div></div>
+      <div><div class="k">扣息後投報率</div><div class="v ${cls(L.afterRet)}">${spct(L.afterRet)}</div></div>
+      <div><div class="k">利息覆蓋倍數</div><div class="v ${L.coverage >= 1 ? 'down' : ''}">${L.coverage.toFixed(2)}x</div></div>
+    </div>
+    <p class="hint">借款部位以組合累計投報率估算；覆蓋倍數＝近 12 個月配息與借券 ÷ 年利息，≥ 1 代表現金流足以付息。</p></section>` : '';
+
+  return hero + `<div class="grid2">${cashCard}${allocCard}</div>` + investCard + plCard + loanCard;
+}
+
+function investChart(iv) {
+  const W = 680, H = 230, L = 52, Rr = 12, Tp = 18, B = 30;
+  const vals = iv.months;
+  const maxV = Math.max(iv.target || 0, ...vals, 1), minV = Math.min(0, ...vals);
+  const span = (maxV - minV) * 1.12 || 1;
+  const y = v => Tp + (maxV * 1.12 - v) / span * (H - Tp - B);
+  const bw = (W - L - Rr) / 12;
+  const ticks = niceTicks(minV, maxV * 1.12);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${iv.year} 年每月淨投入長條圖">`;
+  ticks.forEach(t => { s += `<line x1="${L}" x2="${W-Rr}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)" stroke-width="1"/><text x="${L-8}" y="${y(t)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${shortNum(t)}</text>`; });
+  vals.forEach((v, i) => {
+    const x = L + i*bw + bw*0.18, w = bw*0.64, future = i + 1 > iv.elapsed, cur = i + 1 === iv.elapsed;
+    const y0 = y(Math.max(0, v)), h = Math.abs(y(v) - y(0));
+    if (v !== 0) s += `<rect x="${x}" y="${y0}" width="${w}" height="${Math.max(1,h)}" rx="3" fill="${v < 0 ? 'var(--down)' : 'var(--accent)'}" opacity="${future ? .25 : cur ? 1 : .78}"><title>${i+1} 月：${money(v)}</title></rect>`;
+    s += `<text x="${x + w/2}" y="${H-10}" text-anchor="middle" font-size="11" fill="${cur ? 'var(--fg)' : 'var(--muted)'}" font-weight="${cur ? 600 : 400}">${i+1}月</text>`;
+  });
+  s += `<line x1="${L}" x2="${W-Rr}" y1="${y(0)}" y2="${y(0)}" stroke="var(--muted)" stroke-width="1"/>`;
+  if (iv.target) s += `<line x1="${L}" x2="${W-Rr}" y1="${y(iv.target)}" y2="${y(iv.target)}" stroke="var(--warn)" stroke-width="1.5" stroke-dasharray="5 4"/><text x="${W-Rr}" y="${y(iv.target)-6}" text-anchor="end" font-size="11" fill="var(--warn)" font-weight="600">目標 ${shortNum(iv.target)}</text>`;
+  if (iv.avg > 0) s += `<line x1="${L}" x2="${L + iv.elapsed*bw}" y1="${y(iv.avg)}" y2="${y(iv.avg)}" stroke="var(--fg)" stroke-width="1" stroke-dasharray="2 3" opacity=".6"/><text x="${L+4}" y="${y(iv.avg)-5}" font-size="11" fill="var(--fg)" opacity=".75">平均 ${shortNum(iv.avg)}</text>`;
+  return s + '</svg>';
+}
+function niceTicks(lo, hi) {
+  const range = hi - lo || 1, raw = range / 4, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1,2,2.5,5,10].map(m => m*mag).find(s => s >= raw) || raw;
+  const out = []; for (let v = Math.ceil(lo/step)*step; v <= hi + 1e-9; v += step) out.push(Math.round(v)); return out;
+}
+function shortNum(n) { const a = Math.abs(n); return a >= 1e8 ? (n/1e8).toFixed(1).replace(/\.0$/,'') + '億' : a >= 1e4 ? (n/1e4).toFixed(a >= 1e5 ? 0 : 1).replace(/\.0$/,'') + '萬' : nf(n); }
+
+function allocBlock(g) {
+  if (!g.total) return `<div><h3>${g.title}</h3><div class="empty">尚無持股</div></div>`;
+  const barSpans = g.items.map(i => `<span style="width:${i.pct*100}%;background:${i.color}"></span>`).join('');
+  const tgtMark = `<i class="tgt" style="left:calc(${g.items[0].tgt*100}% - 1px)" title="目標"></i>`;
+  const legend = `<div class="legend"><span class="h">類別</span><span class="h">目前</span><span class="h">目標</span><span class="h">偏離</span>
+    ${g.items.map(i => `<span><i class="dot" style="background:${i.color}"></i>${i.label} <span class="muted">${shortNum(i.value)}</span></span><span>${pct(i.pct)}</span><span class="muted">${pct(i.tgt,0)}</span><span>${i.flag ? `<span class="pill warn">${spct(i.dev)}</span>` : `<span class="muted">${spct(i.dev)}</span>`}</span>`).join('')}</div>`;
+  const sug = g.flagged ? `<div class="suggest"><b class="up">超出容許範圍</b>　建議：${g.items.map(i => i.suggest >= 0 ? `買進${i.label} ${money(i.suggest)}` : `賣出${i.label} ${money(-i.suggest)}`).join('，')}</div>` : '';
+  return `<div><h3>${g.title}${g.flagged ? '<span class="pill warn">需要再平衡</span>' : '<span class="pill ok">在範圍內</span>'}</h3>
+    <div class="bar" style="margin:8px 0 10px">${barSpans}${tgtMark}</div>${legend}${sug ? `<div style="margin-top:8px">${sug}</div>` : ''}</div>`;
+}
+function newMoneyOut() {
+  const M = num(UI.newMoney); if (!M || !R) return '<p class="hint">依目標比例算出各類別要投入多少，先補缺口最大的類別。</p>';
+  return `<div class="suggest" style="margin-top:8px">${R.alloc.map(g => {
+    const total = g.total + M;
+    const gaps = g.items.map(i => Math.max(0, total * i.tgt - i.value)); const gs = gaps.reduce((a,b) => a+b, 0);
+    return `<div><b>${g.title}</b>：${g.items.map((i,k) => `${i.label} ${money(gs ? M * gaps[k] / gs : M * i.tgt)}`).join('，')}</div>`;
+  }).join('')}</div>`;
+}
+
+/* ================= 持股 ================= */
+function pageHold() {
+  const r = R;
+  const accts = r.accounts;
+  const head = `<div class="toolbar"><div class="seg">${[['stock','股票'],['fund','基金']].map(([k,l]) => `<button data-hold="${k}" class="${UI.holdTab === k ? 'on' : ''}">${l}</button>`).join('')}</div><span class="grow"></span>
+    ${UI.holdTab === 'stock' ? `<select class="inp" id="holdAcct" style="width:auto;max-width:55%"><option value="">全部帳戶</option>${accts.map(a => `<option value="${a.id}" ${UI.holdAcct === a.id ? 'selected' : ''}>${esc(a.name)}</option>`).join('')}</select>`
+      : `<button class="btn sm" data-act="newFund">新增基金</button>`}</div>`;
+  if (UI.holdTab === 'fund') {
+    const list = r.fundHoldings;
+    return head + `<section class="card"><div class="rows">${list.map(f => `<div class="row tap" data-edit="funds:${f.id}">
+      <div class="main"><div class="t">${esc(f.name)}</div><div class="s">${nf(f.units, 4)} 單位 · 均價 ${nf(f.avg, 4)} · 淨值 ${f.nav ? nf(f.nav, 4) : '未填'}${f.nav_date ? '（' + esc(f.nav_date.slice(5)) + '）' : ''} · ${f.asset_class || '股'}／${f.region || '—'}</div></div>
+      <div class="r"><div class="t">${money(f.mv, f.cur)}</div><div class="s ${cls(f.unreal)}">${signed(f.unreal, f.cur)} · ${spct(f.ret)}</div></div></div>`).join('') || '<div class="empty">尚無基金。先按「新增基金」建立，再到「紀錄」新增申購。</div>'}</div>
+      <p class="hint">點一下基金可更新最新淨值。</p></section>`;
+  }
+  const list = (UI.holdAcct ? r.buildHoldings(UI.holdAcct) : r.holdings);
+  const open = list.filter(h => h.qty > 0), closed = list.filter(h => h.qty <= 0);
+  const item = h => `<div class="row tap" data-sym="${h.market}|${esc(h.symbol)}">
+      <div class="main"><div class="t">${esc(h.name)} <span class="muted" style="font-weight:400">${esc(h.symbol)}</span></div>
+      <div class="s">${nf(h.qty)} 股 · 均 ${nf(h.avg, 2)} · 現 ${h.priced ? nf(h.price, 2) + (h.manual ? '（手動）' : '') : '<span class="up">無報價</span>'}${h.cls === '債' ? ' · 債' : ''}</div></div>
+      <div class="r"><div class="t">${money(h.mv, h.cur)}</div><div class="s ${cls(h.unreal)}">${signed(h.unreal, h.cur)} · ${spct(h.ret)}</div></div></div>`;
+  return head + `<section class="card"><div class="rows">${open.map(item).join('') || '<div class="empty">尚無持股。到「紀錄」新增第一筆股票買進。</div>'}</div></section>`
+    + (closed.length ? `<section class="card"><h2>已出清<span class="sub">保留已實現損益</span></h2><div class="rows">${closed.map(h => `<div class="row"><div class="main"><div class="t">${esc(h.name)} <span class="muted" style="font-weight:400">${esc(h.symbol)}</span></div></div><div class="r"><div class="t ${cls(h.realized + h.div)}">${signed(h.realized + h.div, h.cur)}</div><div class="s">已實現＋配息</div></div></div>`).join('')}</div></section>` : '')
+    + `<p class="hint">點一下個股可設定手動價格、類別（股／債）或名稱。台股代號結尾 B 自動視為債券 ETF。</p>`;
+}
+
+/* ================= 紀錄 ================= */
+const REC_TYPES = [['trades','股票買賣'],['fund_trades','基金申贖'],['dividends','配息'],['lending','借券'],['cash_flows','資金異動']];
+function recItems() {
+  const r = R, out = [];
+  r.trades.forEach(t => out.push({ table:'trades', id:t.id, date:t.date, title:`${t.side === 'buy' ? '買進' : '賣出'} ${symName(t.market, t.symbol)}`, sub:`${t.symbol} · ${nf(t.qty)} 股 @ ${nf(t.price, 2)} · ${acctName(t.account_id)}`, amt: (t.side === 'buy' ? -1 : 1) * t.total, cur:t.cur }));
+  r.fundTrades.forEach(t => out.push({ table:'fund_trades', id:t.id, date:t.date, title:`${t.side === 'sub' ? '申購' : '贖回'} ${fundName(t.fund_id)}`, sub:`${nf(t.units, 4)} 單位 @ ${nf(t.nav, 4)} · ${acctName(t.account_id)}`, amt:(t.side === 'sub' ? -1 : 1) * t.total, cur:t.cur }));
+  r.dividends.forEach(d => out.push({ table:'dividends', id:d.id, date:d.pay, title:`配息 ${d.kind === 'fund' ? fundName(d.fund_id) : symName(d.market, d.symbol)}`, sub:`除息 ${d.ex_date} · ${nf(d.qty, d.kind === 'fund' ? 4 : 0)} × ${nf(num(d.per_share), 4)} · ${acctName(d.account_id)}`, amt:d.net, cur:d.cur }));
+  r.lending.forEach(l => out.push({ table:'lending', id:l.id, date:l.date, title:`借券 ${symName('TW', l.symbol)}`, sub:`${l.symbol} · ${nf(num(l.qty))} 股 · ${acctName(l.account_id)}`, amt:l.net, cur:'TWD' }));
+  r.flows.forEach(c => {
+    const t = c.type === 'deposit' ? '入金' : c.type === 'withdraw' ? '出金' : '轉帳／換匯';
+    const sub = c.type === 'deposit' ? `→ ${acctName(c.to_account_id)}${c.source === '借款' ? ' · 借款' : ''}` : c.type === 'withdraw' ? `${acctName(c.from_account_id)} →` : `${acctName(c.from_account_id)} → ${acctName(c.to_account_id)}`;
+    const amt = c.type === 'withdraw' ? -num(c.amount_from) : c.type === 'deposit' ? c.amtTo : num(c.amount_from);
+    const cur = c.type === 'deposit' ? c.toCur : c.fromCur;
+    out.push({ table:'cash_flows', id:c.id, date:c.date, title:t + (c.note ? '：' + c.note : ''), sub, amt, cur, neutral: c.type === 'transfer' });
+  });
+  return out.sort((a,b) => a.date < b.date ? 1 : a.date > b.date ? -1 : 0);
+}
+function pageRec() {
+  const items = recItems().filter(i => UI.recFilter === 'all' || i.table === UI.recFilter);
+  const chips = `<div class="chips">${[['all','全部'], ...REC_TYPES].map(([k,l]) => `<button class="chip ${UI.recFilter === k ? 'on' : ''}" data-recf="${k}">${l}</button>`).join('')}</div>`;
+  const add = `<section class="card"><h2>新增紀錄</h2><div class="chips" style="margin:0">${REC_TYPES.map(([k,l]) => `<button class="btn sm" data-new="${k}">＋ ${l}</button>`).join('')}</div></section>`;
+  let lastMonth = '';
+  const list = items.map(i => {
+    const m = (i.date || '').slice(0,7); let hdr = '';
+    if (m !== lastMonth) { lastMonth = m; hdr = `<div class="row" style="padding:14px 0 4px"><div class="main s" style="font-weight:600;color:var(--muted)">${m.replace('-', ' 年 ')} 月</div></div>`; }
+    return hdr + `<div class="row tap" data-edit="${i.table}:${i.id}"><div class="main"><div class="t">${esc(i.title)}</div><div class="s">${esc(i.date)} · ${esc(i.sub)}</div></div><div class="r"><div class="t ${i.neutral ? '' : (i.amt < 0 ? '' : 'up')}">${i.amt > 0 && !i.neutral ? '+' : ''}${money(i.amt, i.cur)}</div></div></div>`;
+  }).join('');
+  return add + `<section class="card">${chips}<div class="rows">${list || '<div class="empty">沒有紀錄。</div>'}</div></section>`;
+}
+
+/* ================= 資金 ================= */
+function pageCash() {
+  const r = R;
+  const accts = `<section class="card"><h2>證券帳戶現金</h2><div class="rows">${r.cash.map(a => `<div class="row"><div class="main"><div class="t">${esc(a.name)}</div><div class="s">${esc(a.type || '')} · ${a.currency}${a.broker ? ' · ' + esc(a.broker) : ''}</div></div>
+      <div class="r"><div class="t ${a.bal < 0 ? 'up' : ''}">${money(a.bal, a.currency)}</div><button class="btn sm" data-adjust="${a.id}" style="margin-top:4px">餘額校正</button></div></div>`).join('') || '<div class="empty">尚未設定帳戶。</div>'}
+    <div class="row total"><div class="main">合計（新台幣）</div><div class="r">${money(r.cashTWD)}</div></div></div>
+    <p class="hint">餘額＝入金－出金±轉帳－買進＋賣出＋配息＋借券－基金申購＋贖回。與券商對帳單不同時用「餘額校正」補一筆差額。</p></section>`;
+  const loans = `<section class="card"><h2>借款<span class="sub"><button class="btn sm" data-new="loans">＋ 新增借款</button></span></h2><div class="rows">${r.loans.map(l => `<div class="row tap" data-edit="loans:${l.id}"><div class="main"><div class="t">${esc(l.name)}</div><div class="s">年利率 ${nf(l.rate*100, 2)}% · 月付息 ${money(l.monthly)} · 已繳 ${l.monthsPaid} 期 · 已投入 ${money(l.invested)}</div></div><div class="r"><div class="t">${money(l.principal)}</div><div class="s">未投入 ${money(l.uninvested)}</div></div></div>`).join('') || '<div class="empty">沒有借款。</div>'}</div>
+    <p class="hint">已投入金額空白時，取「資金異動」中來源為借款的入金合計。</p></section>`;
+  return accts + loans + `<section class="card"><h2>資金異動</h2><div class="chips" style="margin:0"><button class="btn sm" data-new="cash_flows">＋ 入金／出金／換匯</button></div></section>`;
+}
+
+/* ================= 設定 ================= */
+function pageSet() {
+  const r = R, T = r.T, P = r.P;
+  const conn = `<section class="card"><h2>連線<span class="sub">${connected() ? '<span class="pill ok">已連線</span>' : '<span class="pill warn">示範模式</span>'}</span></h2>
+    <div class="form">
+      <div class="f full"><label for="cfgUrl">Apps Script 網址</label><input class="inp" id="cfgUrl" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(CFG.apiUrl)}"></div>
+      <div class="f full"><label for="cfgToken">連線金鑰</label><input class="inp" id="cfgToken" type="password" autocomplete="off" value="${esc(CFG.token)}"></div>
+    </div>
+    <div class="actions"><button class="btn pri" data-act="connect">${connected() ? '儲存並重新同步' : '連線並改用我的資料'}</button>${connected() ? '<button class="btn" data-act="disconnect">改回示範模式</button>' : ''}</div>
+    <div id="connMsg"></div></section>`;
+  const accts = `<section class="card"><h2>帳戶<span class="sub"><button class="btn sm" data-new="accounts">＋ 新增帳戶</button></span></h2><div class="rows">${r.accounts.map(a => `<div class="row tap" data-edit="accounts:${a.id}"><div class="main"><div class="t">${esc(a.name)}</div><div class="s">${esc(a.type || '')} · ${a.currency} · 費率 ${a.fee_rate || '預設'} × ${a.fee_discount || 1} · 最低 ${a.fee_min || '預設'}</div></div></div>`).join('') || '<div class="empty">尚無帳戶</div>'}</div></section>`;
+  const tf = (k, l, ph) => `<div class="f"><label for="t_${k}">${l}</label><input class="inp" id="t_${k}" data-target="${k}" inputmode="decimal" value="${esc(T[k] ?? '')}" placeholder="${ph || ''}"></div>`;
+  const targets = `<section class="card"><h2>投資目標與配置</h2><div class="form">
+      ${tf('monthly_invest','每月投資目標（元）')}${tf('band_pct','容許偏離（%）','5')}
+      ${tf('tw_pct','台股目標（%）')}${tf('us_pct','美股目標（%）')}${tf('stock_pct','股目標（%）')}${tf('bond_pct','債目標（%）')}
+    </div><div class="actions"><button class="btn pri" data-act="saveTargets">儲存目標</button></div></section>`;
+  const pf = (k, l) => `<div class="f"><label for="p_${k}">${l}</label><input class="inp" id="p_${k}" data-param="${k}" inputmode="decimal" value="${esc(P[k] ?? '')}"></div>`;
+  const params = `<section class="card"><h2>計算參數</h2><div class="form">
+      ${pf('tax_stock','股票證交稅')}${pf('tax_etf','ETF 證交稅')}${pf('tax_bond_etf','債券 ETF 證交稅')}${pf('nhi_rate','二代健保費率')}
+      ${pf('nhi_min','二代健保單次門檻')}${pf('us_wht','美股預扣稅率')}${pf('remit_fee','台股配息匯費')}${pf('fx_fallback','備用匯率')}
+      ${pf('tw_fee_rate','未設定帳戶時台股費率')}${pf('tw_fee_min','未設定帳戶時最低手續費')}
+    </div><div class="actions"><button class="btn pri" data-act="saveParams">儲存參數</button></div></section>`;
+  const syms = `<section class="card"><h2>代號覆寫<span class="sub"><button class="btn sm" data-new="symbols">＋ 新增</button></span></h2><div class="rows">${rows('symbols').map(s => `<div class="row tap" data-edit="symbols:${s.id}"><div class="main"><div class="t">${esc(s.symbol)} <span class="muted" style="font-weight:400">${s.market === 'TW' ? '台股' : '美股'}</span></div><div class="s">${[s.name && '名稱 ' + s.name, s.asset_class && '類別 ' + s.asset_class, s.tax_type && '稅別 ' + s.tax_type, s.quote_symbol && '報價 ' + s.quote_symbol, !blank(s.manual_price) && '手動價 ' + s.manual_price].filter(Boolean).map(esc).join(' · ')}</div></div></div>`).join('') || '<div class="empty">沒有覆寫，全部自動判斷。</div>'}</div></section>`;
+  const data = `<section class="card"><h2>資料</h2><div class="chips" style="margin:0"><button class="btn sm" data-act="export">匯出 JSON</button><button class="btn sm danger" data-act="clearLocal">清除本機資料</button></div>
+    <p class="hint">Excel 匯入在第四階段提供。清除本機資料不會刪除雲端試算表。</p><div id="clearMsg"></div></section>`;
+  return conn + accts + targets + params + syms + data;
+}
+
+/* ================= 表單 ================= */
+const SIDE = { buy:'買進', sell:'賣出', sub:'申購', red:'贖回' };
+function schema(table) {
+  const acctOpts = () => rows('accounts').map(a => [a.id, `${a.name}（${a.currency}）`]);
+  const fundOpts = () => rows('funds').map(f => [f.id, f.name]);
+  const loanOpts = () => rows('loans').map(l => [l.id, l.name]);
+  const S = {
+    trades: { title:'股票買賣', fields:[
+      { k:'date', l:'日期', type:'date', req:1, def: today },
+      { k:'account_id', l:'帳戶', type:'select', opts: acctOpts, req:1 },
+      { k:'side', l:'買賣', type:'seg', opts: () => [['buy','買進'],['sell','賣出']], def:'buy' },
+      { k:'market', l:'市場', type:'seg', opts: () => [['TW','台股'],['US','美股']], def:'TW' },
+      { k:'symbol', l:'代號', type:'text', req:1, upper:1, ph:'2330、AAPL' },
+      { k:'qty', l:'股數', type:'num', req:1 },
+      { k:'price', l:'成交價', type:'num', req:1 },
+      { k:'fee', l:'手續費（空白自動）', type:'num' },
+      { k:'tax', l:'交易稅（空白自動）', type:'num', show: f => f.market === 'TW' },
+      { k:'fx_rate', l:'成交匯率（空白自動抓）', type:'num', show: f => f.market === 'US' },
+      { k:'note', l:'備註', type:'text', full:1 },
+    ], preview: f => { if (!f.qty || blank(f.price)) return ''; const d = deriveTrade(f, kv('params'), R.fxNow); return `手續費 ${money(d.fee, d.cur)} · 交易稅 ${money(d.tax, d.cur)} · ${f.side === 'buy' ? '總成本' : '淨收入'} <b>${money(d.total, d.cur)}</b>${d.cur === 'USD' ? `（≈ ${money(d.twd)}）` : ''}`; } },
+    fund_trades: { title:'基金申贖', fields:[
+      { k:'date', l:'日期', type:'date', req:1, def: today },
+      { k:'account_id', l:'帳戶', type:'select', opts: acctOpts, req:1 },
+      { k:'fund_id', l:'基金', type:'select', opts: fundOpts, req:1, full:1 },
+      { k:'side', l:'申購／贖回', type:'seg', opts: () => [['sub','申購'],['red','贖回']], def:'sub' },
+      { k:'units', l:'單位數', type:'num', req:1 },
+      { k:'nav', l:'淨值', type:'num', req:1 },
+      { k:'fee', l:'手續費', type:'num' },
+      { k:'fx_rate', l:'成交匯率（空白自動抓）', type:'num', show: f => (DB.funds[f.fund_id] || {}).currency === 'USD' },
+      { k:'note', l:'備註', type:'text', full:1 },
+    ], preview: f => { const u = num(f.units), n = num(f.nav); if (!u || !n) return ''; const fee = num(f.fee); const cur = (DB.funds[f.fund_id] || {}).currency || 'TWD'; return `${f.side === 'red' ? '淨收入' : '總成本'} <b>${money(f.side === 'red' ? u*n - fee : u*n + fee, cur)}</b>`; } },
+    dividends: { title:'配息', fields:[
+      { k:'ex_date', l:'除息日', type:'date', req:1, def: today },
+      { k:'pay_date', l:'發放日', type:'date' },
+      { k:'account_id', l:'帳戶', type:'select', opts: acctOpts, req:1, full:1 },
+      { k:'kind', l:'種類', type:'seg', opts: () => [['stock','股票'],['fund','基金']], def:'stock' },
+      { k:'market', l:'市場', type:'seg', opts: () => [['TW','台股'],['US','美股']], def:'TW', show: f => f.kind !== 'fund' },
+      { k:'symbol', l:'代號', type:'text', upper:1, req:1, show: f => f.kind !== 'fund' },
+      { k:'fund_id', l:'基金', type:'select', opts: fundOpts, req:1, show: f => f.kind === 'fund', full:1 },
+      { k:'per_share', l:'每股（單位）配息', type:'num', req:1 },
+      { k:'qty_override', l:'參與股數（空白自動）', type:'num' },
+      { k:'nhi', l:'二代健保（空白自動）', type:'num', show: f => f.kind !== 'fund' && f.market === 'TW' },
+      { k:'withholding', l:'預扣稅（空白自動）', type:'num', show: f => f.kind !== 'fund' && f.market === 'US' },
+      { k:'remit_fee', l:'匯費（空白自動）', type:'num' },
+      { k:'fx_rate', l:'入帳匯率（空白自動）', type:'num', show: f => (f.kind === 'fund' ? (DB.funds[f.fund_id] || {}).currency : (f.market === 'US' ? 'USD' : 'TWD')) === 'USD' },
+    ], preview: f => {
+      if (!f.per_share || (!f.symbol && !f.fund_id) || !f.ex_date) return '';
+      const save = DB.dividends.__p; DB.dividends.__p = { ...f, id:'__p' }; const d = compute().dividends.find(x => x.id === '__p'); if (save) DB.dividends.__p = save; else delete DB.dividends.__p;
+      return d ? `參與 ${nf(d.qty, f.kind === 'fund' ? 4 : 0)} · 配息 ${money(d.gross, d.cur)} · 扣 ${money(d.nhi + d.wht + d.remit, d.cur)} · 實領 <b>${money(d.net, d.cur)}</b>` : '';
+    } },
+    lending: { title:'借券收入', fields:[
+      { k:'date', l:'入帳日', type:'date', req:1, def: today },
+      { k:'account_id', l:'帳戶', type:'select', opts: acctOpts, req:1 },
+      { k:'symbol', l:'代號', type:'text', upper:1, req:1 },
+      { k:'qty', l:'出借股數', type:'num' },
+      { k:'gross', l:'借券收入', type:'num', req:1 },
+      { k:'fee', l:'手續費', type:'num' },
+      { k:'tax', l:'代扣稅／二代健保', type:'num' },
+      { k:'note', l:'備註', type:'text', full:1 },
+    ], preview: f => f.gross ? `實收 <b>${money(num(f.gross) - num(f.fee) - num(f.tax))}</b>` : '' },
+    cash_flows: { title:'資金異動', fields:[
+      { k:'date', l:'日期', type:'date', req:1, def: today },
+      { k:'type', l:'類型', type:'seg', opts: () => [['deposit','入金'],['withdraw','出金'],['transfer','轉帳／換匯']], def:'deposit', full:1 },
+      { k:'from_account_id', l:'轉出帳戶', type:'select', opts: acctOpts, req:1, show: f => f.type !== 'deposit' },
+      { k:'to_account_id', l:'轉入帳戶', type:'select', opts: acctOpts, req:1, show: f => f.type !== 'withdraw' },
+      { k:'amount_to', l:'入金金額', type:'num', req:1, show: f => f.type === 'deposit' },
+      { k:'amount_from', l:'轉出金額', type:'num', req:1, show: f => f.type !== 'deposit' },
+      { k:'fx_rate', l:'換匯匯率（USD/TWD）', type:'num', show: f => f.type === 'transfer' && (DB.accounts[f.from_account_id] || {}).currency !== (DB.accounts[f.to_account_id] || {}).currency },
+      { k:'amount_to', l:'轉入金額（空白依匯率）', type:'num', show: f => f.type === 'transfer' },
+      { k:'source', l:'資金來源', type:'seg', opts: () => [['自有','自有'],['借款','借款']], def:'自有', show: f => f.type === 'deposit' },
+      { k:'loan_id', l:'借款', type:'select', opts: loanOpts, show: f => f.type === 'deposit' && f.source === '借款' },
+      { k:'note', l:'備註', type:'text', full:1 },
+    ] },
+    loans: { title:'借款', fields:[
+      { k:'name', l:'名稱', type:'text', req:1, full:1, ph:'理財型房貸' },
+      { k:'principal', l:'借款金額', type:'num', req:1 },
+      { k:'rate', l:'年利率（%）', type:'num', req:1, ph:'2.55' },
+      { k:'start_date', l:'撥款日', type:'date', req:1 },
+      { k:'end_date', l:'到期日', type:'date' },
+      { k:'invested_amount', l:'已投入金額（空白自動）', type:'num' },
+      { k:'interest_paid_override', l:'已付利息（空白估算）', type:'num' },
+    ] },
+    accounts: { title:'帳戶', fields:[
+      { k:'name', l:'帳戶名稱', type:'text', req:1, full:1, ph:'元大台幣交割戶' },
+      { k:'type', l:'類型', type:'select', opts: () => ['台幣交割戶','複委託','海外券商','基金平台','其他'].map(x => [x,x]), req:1 },
+      { k:'currency', l:'幣別', type:'seg', opts: () => [['TWD','TWD'],['USD','USD']], def:'TWD' },
+      { k:'broker', l:'券商', type:'text' },
+      { k:'fee_rate', l:'手續費率', type:'num', ph:'0.001425' },
+      { k:'fee_discount', l:'折扣', type:'num', ph:'0.6 = 6 折' },
+      { k:'fee_min', l:'最低手續費', type:'num', ph:'20' },
+      { k:'sort', l:'排序', type:'num', ph:'1' },
+    ] },
+    funds: { title:'基金', fields:[
+      { k:'name', l:'基金名稱', type:'text', req:1, full:1 },
+      { k:'currency', l:'幣別', type:'seg', opts: () => [['TWD','TWD'],['USD','USD']], def:'TWD' },
+      { k:'asset_class', l:'類別', type:'seg', opts: () => [['股','股'],['債','債']], def:'股' },
+      { k:'region', l:'區域', type:'seg', opts: () => [['台','台'],['美','美'],['全球','全球']], def:'全球', full:1 },
+      { k:'latest_nav', l:'最新淨值', type:'num' },
+      { k:'nav_date', l:'淨值日期', type:'date', def: today },
+    ] },
+    symbols: { title:'代號覆寫', fields:[
+      { k:'market', l:'市場', type:'seg', opts: () => [['TW','台股'],['US','美股']], def:'TW' },
+      { k:'symbol', l:'代號', type:'text', req:1, upper:1 },
+      { k:'name', l:'名稱', type:'text' },
+      { k:'asset_class', l:'類別', type:'seg', opts: () => [['','自動'],['股','股'],['債','債']], def:'' },
+      { k:'tax_type', l:'稅別', type:'select', opts: () => [['','自動'],['股票','股票'],['ETF','ETF'],['債券ETF','債券ETF']] },
+      { k:'quote_symbol', l:'報價代碼', type:'text', ph:'例：TPE:2330' },
+      { k:'manual_price', l:'手動價格', type:'num' },
+    ] },
+  };
+  return S[table];
+}
+
+let FORM = null;
+function openForm(table, id, preset) {
+  const sc = schema(table); const existing = id ? { ...DB[table][id] } : null;
+  const f = existing || {};
+  if (!existing) {
+    sc.fields.forEach(fd => { if (fd.def !== undefined && f[fd.k] === undefined) f[fd.k] = typeof fd.def === 'function' ? fd.def() : fd.def; });
+    if (sc.fields.some(fd => fd.k === 'account_id')) { const a = rows('accounts')[0]; if (a && !f.account_id) f.account_id = a.id; }
+    Object.assign(f, preset || {});
+    if (table === 'trades' && f.account_id && DB.accounts[f.account_id] && DB.accounts[f.account_id].currency === 'USD') f.market = 'US';
+  }
+  FORM = { table, id, f, confirmDel: false };
+  drawForm();
+}
+function drawForm() {
+  const { table, id, f } = FORM; const sc = schema(table);
+  const fields = sc.fields.filter(fd => !fd.show || fd.show(f));
+  const html = fields.map(fd => {
+    const v = f[fd.k] ?? '';
+    let ctl;
+    if (fd.type === 'seg') ctl = `<div class="seg">${fd.opts().map(([k,l]) => `<button type="button" data-seg="${fd.k}" data-val="${esc(k)}" class="${String(v) === String(k) ? 'on' : ''}">${l}</button>`).join('')}</div>`;
+    else if (fd.type === 'select') { const o = fd.opts(); ctl = `<select class="inp" id="f_${fd.k}" data-fk="${fd.k}"><option value="">請選擇</option>${o.map(([k,l]) => `<option value="${esc(k)}" ${String(v) === String(k) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>`; }
+    else ctl = `<input class="inp" id="f_${fd.k}" data-fk="${fd.k}" type="${fd.type === 'date' ? 'date' : 'text'}" ${fd.type === 'num' ? 'inputmode="decimal"' : ''} value="${esc(v)}" placeholder="${esc(fd.ph || '')}" ${fd.upper ? 'autocapitalize="characters"' : ''}>`;
+    return `<div class="f ${fd.full || fd.type === 'seg' && fd.opts().length > 2 ? 'full' : ''}"><label for="f_${fd.k}">${fd.l}${fd.req ? '' : ''}</label>${ctl}</div>`;
+  }).join('');
+  const pv = sc.preview ? sc.preview(f) : '';
+  $('#layer').innerHTML = `<div class="sheet-bg" data-close="1"><div class="sheet" role="dialog" aria-modal="true" aria-label="${sc.title}">
+    <h3>${id ? '編輯' : '新增'}${sc.title}<button class="iconbtn x" data-act="closeForm" aria-label="關閉"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></h3>
+    <form class="form" id="theForm" autocomplete="off">${html}<div class="preview" id="pv" ${pv ? '' : 'hidden'}>${pv}</div></form>
+    <div id="formErr" class="hint up"></div>
+    <div class="actions">${id ? '<button class="btn danger" data-act="askDel">刪除</button>' : ''}<span class="grow"></span><button class="btn" data-act="closeForm">取消</button><button class="btn pri" data-act="saveForm">儲存</button></div>
+    ${FORM.confirmDel ? '<div class="confirm">確定刪除這筆？<span class="grow"></span><button class="btn sm" data-act="cancelDel">取消</button><button class="btn sm danger" data-act="doDel">刪除</button></div>' : ''}
+  </div></div>`;
+}
+function updatePreview() {
+  const sc = schema(FORM.table); if (!sc.preview) return;
+  const pv = sc.preview(FORM.f); const el = $('#pv'); if (!el) return; el.innerHTML = pv; el.hidden = !pv;
+}
+async function saveForm() {
+  const { table, id, f } = FORM; const sc = schema(table);
+  const vis = sc.fields.filter(fd => !fd.show || fd.show(f));
+  const miss = vis.filter(fd => fd.req && blank(f[fd.k]));
+  if (miss.length) { $('#formErr').textContent = '請填寫：' + miss.map(m => m.l).join('、'); return; }
+  const row = { id: id || uuid() };
+  sc.fields.forEach(fd => { let v = f[fd.k]; if (fd.show && !fd.show(f)) v = ''; if (fd.upper && v) v = String(v).trim().toUpperCase(); if (fd.type === 'num' && !blank(v)) v = String(num(v)); if (row[fd.k] === undefined || (v !== '' && v !== undefined)) row[fd.k] = v ?? ''; });
+  if (table === 'cash_flows' && row.type === 'deposit') row.amount_from = '';
+  closeForm();
+  await saveRows(table, [row]);
+  // 新增美股交易或外幣基金時自動補成交匯率
+  if (connected() && ['trades','fund_trades'].includes(table) && blank(row.fx_rate)) {
+    const isUSD = table === 'trades' ? row.market === 'US' : (DB.funds[row.fund_id] || {}).currency === 'USD';
+    if (isUSD) fillFx(table, row.id, row.date);
+  }
+  if (connected() && table === 'trades' && !DB.prices[`${row.market}|${row.symbol}`]) refreshQuotes([{ market: row.market, symbol: row.symbol }], true);
+}
+async function fillFx(table, id, date) {
+  try { const j = await api('fxOn', { dates: [date] }); const fx = j.data[date]; if (fx) await saveRows(table, [{ ...DB[table][id], fx_rate: String(fx) }]); } catch (e) {}
+}
+function closeForm() { FORM = null; $('#layer').innerHTML = ''; }
+
+/* ================= 存取與同步 ================= */
+async function saveRows(table, list) {
+  const now = new Date().toISOString();
+  list.forEach(r => { const prev = DB[table][r.id] || { created_at: now }; DB[table][r.id] = { ...prev, ...r, updated_at: now }; });
+  if (connected()) OUTBOX.push({ table, rows: list.map(r => DB[table][r.id]) });
+  persist(); render();
+  if (connected()) flushOutbox().then(() => render()).catch(() => {});
+}
+async function removeRow(table, id) { await saveRows(table, [{ ...DB[table][id], deleted: '1' }]); }
+
+async function api(action, payload) {
+  const res = await fetch(CFG.apiUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ token: CFG.token, action, payload }) });
+  if (!res.ok) throw new Error('連線失敗（HTTP ' + res.status + '）');
+  const j = await res.json(); if (!j.ok) throw new Error((j.error && j.error.message) || '伺服器錯誤'); return j;
+}
+let flushing = null;
+function flushOutbox() {
+  if (flushing) return flushing;
+  flushing = (async () => {
+    while (OUTBOX.length) {
+      const job = OUTBOX[0];
+      const j = await api('upsert', { table: job.table, rows: job.rows });
+      (j.data.rows || []).forEach(r => { const loc = DB[job.table][r.id]; if (!loc || loc.updated_at <= r.updated_at || job.rows.some(x => x.id === r.id)) DB[job.table][r.id] = r; });
+      OUTBOX.shift(); persist();
+    }
+  })().finally(() => { flushing = null; });
+  return flushing;
+}
+async function syncAll() {
+  await flushOutbox();
+  const j = await api('getAll', { since: CFG.lastSync || '' });
+  TABLES.forEach(t => (j.data[t] || []).forEach(r => { const loc = DB[t][r.id]; if (!loc || !loc.updated_at || r.updated_at >= loc.updated_at) DB[t][r.id] = r; }));
+  CFG.lastSync = j.serverTime; persist();
+}
+function heldSymbols() {
+  const set = new Map();
+  R.holdings.filter(h => h.qty > 0).forEach(h => { const o = symOverride(h.market, h.symbol); if (o && !blank(o.manual_price)) return; set.set(h.key, { market: h.market, symbol: h.symbol, quote_symbol: o && o.quote_symbol || '' }); });
+  return [...set.values()];
+}
+async function refreshQuotes(list, quiet) {
+  const j = await api('refreshQuotes', { symbols: list });
+  const d = j.data;
+  (d.quotes || []).forEach(q => { if (q.price) DB.prices[`${q.market}|${q.symbol}`] = { id: `${q.market}|${q.symbol}`, market: q.market, symbol: q.symbol, price: String(q.price), prev_close: String(q.prev_close || ''), name: q.name || '', source: q.source, fetched_at: q.fetched_at }; });
+  if (d.fx) DB.prices['FX|USDTWD'] = { id:'FX|USDTWD', market:'FX', symbol:'USDTWD', price: String(d.fx), fetched_at: d.fetched_at };
+  if (!quiet) CFG.lastQuote = d.fetched_at;
+  persist(); render();
+  return d;
+}
+let refreshing = false;
+async function doRefresh() {
+  if (refreshing) return; refreshing = true; $('#refreshBtn').classList.add('spin');
+  try {
+    if (!connected()) { await new Promise(r => setTimeout(r, 500)); toast('示範模式不連線，價格為範例'); return; }
+    await syncAll(); render();
+    const d = await refreshQuotes(heldSymbols());
+    toast(d.failed && d.failed.length ? `已更新，${d.failed.length} 檔沒有報價：${d.failed.join('、')}` : '股價已更新', d.failed && d.failed.length ? 4500 : 2000);
+  } catch (e) { toast('更新失敗：' + e.message, 4000); }
+  finally { refreshing = false; $('#refreshBtn').classList.remove('spin'); }
+}
+
+/* ================= 事件 ================= */
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-tab],[data-act],[data-new],[data-edit],[data-hold],[data-recf],[data-seg],[data-adjust],[data-sym],[data-close]');
+  if (!b) return;
+  if (b.dataset.close && e.target !== b) return;
+  if (b.dataset.close) return closeForm();
+  if (b.dataset.tab) { UI.tab = b.dataset.tab; render(); window.scrollTo(0, 0); return; }
+  if (b.dataset.hold) { UI.holdTab = b.dataset.hold; return render(); }
+  if (b.dataset.recf) { UI.recFilter = b.dataset.recf; return render(); }
+  if (b.dataset.new) return openForm(b.dataset.new);
+  if (b.dataset.edit) { const [t, id] = b.dataset.edit.split(':'); return openForm(t, id); }
+  if (b.dataset.sym) {
+    const [m, s] = b.dataset.sym.split('|'); const o = symOverride(m, s);
+    return o ? openForm('symbols', o.id) : openForm('symbols', null, { market: m, symbol: s });
+  }
+  if (b.dataset.seg) { FORM.f[b.dataset.seg] = b.dataset.val; if (b.dataset.seg === 'account_id') {} drawForm(); return; }
+  if (b.dataset.adjust) return openAdjust(b.dataset.adjust);
+  const a = b.dataset.act;
+  if (a === 'closeForm') return closeForm();
+  if (a === 'saveForm') return saveForm();
+  if (a === 'askDel') { FORM.confirmDel = true; return drawForm(); }
+  if (a === 'cancelDel') { FORM.confirmDel = false; return drawForm(); }
+  if (a === 'doDel') { const { table, id } = FORM; closeForm(); await removeRow(table, id); toast('已刪除'); return; }
+  if (a === 'calcNew') { UI.newMoney = $('#newMoney').value; $('#newMoneyOut').innerHTML = newMoneyOut(); return; }
+  if (a === 'newFund') return openForm('funds');
+  if (a === 'saveTargets') { await saveKV('targets', '[data-target]', 'target'); toast('目標已儲存'); return; }
+  if (a === 'saveParams') { await saveKV('params', '[data-param]', 'param'); toast('參數已儲存'); return; }
+  if (a === 'connect') return connect();
+  if (a === 'disconnect') { CFG = { apiUrl:'', token:'', lastSync:'', lastQuote:'' }; OUTBOX = []; DB = {}; TABLES.forEach(t => DB[t] = {}); loadDemo(); persist(); render(); toast('已改回示範模式'); return; }
+  if (a === 'export') return exportJson();
+  if (a === 'clearLocal') { $('#clearMsg').innerHTML = '<div class="confirm">清除這台裝置上的資料？雲端試算表不受影響。<span class="grow"></span><button class="btn sm danger" data-act="doClear">清除</button></div>'; return; }
+  if (a === 'doClear') { try { localStorage.removeItem('pf_db'); localStorage.removeItem('pf_outbox'); } catch (err) {} CFG.lastSync = ''; OUTBOX = []; DB = {}; TABLES.forEach(t => DB[t] = {}); if (!connected()) loadDemo(); persist(); render(); if (connected()) doRefresh(); toast('已清除本機資料'); return; }
+  if (a === 'saveAdjust') return saveAdjust();
+});
+document.addEventListener('input', e => {
+  const el = e.target;
+  if (FORM && el.dataset.fk) { FORM.f[el.dataset.fk] = el.value; updatePreview(); }
+});
+document.addEventListener('change', e => {
+  const el = e.target;
+  if (el.id === 'holdAcct') { UI.holdAcct = el.value; return render(); }
+  if (FORM && el.dataset.fk && el.tagName === 'SELECT') {
+    FORM.f[el.dataset.fk] = el.value;
+    if (FORM.table === 'trades' && el.dataset.fk === 'account_id' && !FORM.id) { const ac = DB.accounts[el.value]; if (ac) FORM.f.market = ac.currency === 'USD' ? 'US' : 'TW'; }
+    drawForm();
+  }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && FORM) closeForm(); if (e.key === 'Enter' && e.target.id === 'newMoney') { UI.newMoney = e.target.value; $('#newMoneyOut').innerHTML = newMoneyOut(); } });
+$('#refreshBtn').addEventListener('click', doRefresh);
+
+async function saveKV(table, sel, attr) {
+  const existing = {}; rows(table).forEach(r => existing[r.key] = r);
+  const list = [...document.querySelectorAll(sel)].map(el => { const k = el.dataset[attr]; const prev = existing[k]; return { id: prev ? prev.id : table + '_' + k, key: k, value: el.value.trim() }; });
+  await saveRows(table, list);
+}
+function openAdjust(acctId) {
+  const a = R.cash.find(x => x.id === acctId); if (!a) return;
+  FORM = null;
+  $('#layer').innerHTML = `<div class="sheet-bg" data-close="1"><div class="sheet" role="dialog" aria-modal="true" aria-label="餘額校正">
+    <h3>餘額校正：${esc(a.name)}<button class="iconbtn x" data-act="closeForm" aria-label="關閉"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></h3>
+    <p class="hint" style="margin:0 0 10px">系統目前算出 <b>${money(a.bal, a.currency)}</b>。輸入券商或銀行顯示的實際餘額，會自動新增一筆入金或出金補足差額。</p>
+    <div class="form"><div class="f full"><label for="adjVal">實際餘額（${a.currency}）</label><input class="inp" id="adjVal" inputmode="decimal" data-acct="${a.id}" data-cur="${a.bal}"></div></div>
+    <div class="actions"><span class="grow"></span><button class="btn" data-act="closeForm">取消</button><button class="btn pri" data-act="saveAdjust">校正</button></div></div></div>`;
+}
+async function saveAdjust() {
+  const el = $('#adjVal'); const actual = num(el.value); const curBal = num(el.dataset.cur); const id = el.dataset.acct;
+  if (blank(el.value)) return;
+  const diff = round2(actual - curBal); closeForm();
+  if (Math.abs(diff) < 0.005) { toast('餘額一致，不需校正'); return; }
+  await saveRows('cash_flows', [diff > 0
+    ? { id: uuid(), date: today(), type:'deposit', to_account_id: id, amount_to: String(diff), source:'自有', note:'餘額校正' }
+    : { id: uuid(), date: today(), type:'withdraw', from_account_id: id, amount_from: String(-diff), note:'餘額校正' }]);
+  toast('已新增校正紀錄');
+}
+async function connect() {
+  const url = $('#cfgUrl').value.trim(), token = $('#cfgToken').value.trim();
+  const msg = $('#connMsg');
+  if (!url || !token) { msg.innerHTML = '<p class="hint up">請填寫網址與金鑰。</p>'; return; }
+  msg.innerHTML = '<p class="hint">連線中…</p>';
+  const wasDemo = !connected();
+  const old = { ...CFG };
+  CFG.apiUrl = url; CFG.token = token;
+  try {
+    await api('ping', {});
+    if (wasDemo) { DB = {}; TABLES.forEach(t => DB[t] = {}); OUTBOX = []; CFG.lastSync = ''; CFG.lastQuote = ''; }
+    persist(); render(); UI.tab = 'home';
+    await syncAll(); render(); toast('已連線，資料同步完成');
+    doRefresh();
+  } catch (e) { CFG = old; persist(); msg.innerHTML = `<p class="hint up">連線失敗：${esc(e.message)}。確認網址結尾是 /exec、部署權限為「任何人」、金鑰正確。</p>`; }
+}
+function exportJson() {
+  const data = {}; TABLES.forEach(t => data[t] = Object.values(DB[t]));
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `portfolio-${today()}.json`; document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* 下拉重整 */
+(() => {
+  let y0 = null, dy = 0; const ptr = $('#ptr');
+  window.addEventListener('touchstart', e => { if (window.scrollY <= 0 && !FORM && !$('#layer').innerHTML) { y0 = e.touches[0].clientY; dy = 0; } }, { passive: true });
+  window.addEventListener('touchmove', e => { if (y0 === null) return; dy = e.touches[0].clientY - y0; if (dy > 0) { ptr.style.height = Math.min(48, dy / 2.2) + 'px'; ptr.textContent = dy > 90 ? '放開以更新股價' : '下拉更新股價'; } }, { passive: true });
+  window.addEventListener('touchend', () => { if (y0 !== null && dy > 90) doRefresh(); y0 = null; dy = 0; ptr.style.height = '0'; });
+})();
+
+/* ================= 示範資料 ================= */
+function loadDemo() {
+  TABLES.forEach(t => DB[t] = {});
+  const put = (t, r) => { r.id = r.id || uuid(); r.created_at = r.updated_at = '2026-01-01T00:00:00Z'; r.deleted = ''; DB[t][r.id] = r; };
+  const y = new Date().getFullYear(), Y = String(y), PY = String(y - 1);
+  const P = { tax_stock:'0.003', tax_etf:'0.001', tax_bond_etf:'0', nhi_rate:'0.0211', nhi_min:'20000', us_wht:'0.3', remit_fee:'10', tw_fee_rate:'0.001425', tw_fee_min:'20', fx_fallback:'32' };
+  Object.entries(P).forEach(([k,v]) => put('params', { id:'params_' + k, key:k, value:v }));
+  const T = { monthly_invest:'200000', tw_pct:'60', us_pct:'40', stock_pct:'70', bond_pct:'30', band_pct:'5' };
+  Object.entries(T).forEach(([k,v]) => put('targets', { id:'targets_' + k, key:k, value:v }));
+  put('accounts', { id:'A1', name:'元大台幣交割戶', type:'台幣交割戶', currency:'TWD', broker:'元大證券', fee_rate:'0.001425', fee_discount:'0.6', fee_min:'20', sort:'1' });
+  put('accounts', { id:'A2', name:'國泰台幣交割戶', type:'台幣交割戶', currency:'TWD', broker:'國泰證券', fee_rate:'0.001425', fee_discount:'0.28', fee_min:'1', sort:'2' });
+  put('accounts', { id:'A3', name:'元大複委託', type:'複委託', currency:'USD', broker:'元大證券', fee_rate:'0.001', fee_discount:'1', fee_min:'0', sort:'3' });
+  put('accounts', { id:'A4', name:'基富通', type:'基金平台', currency:'TWD', broker:'基富通', sort:'4' });
+  put('loans', { id:'L1', name:'理財型房貸（範例）', principal:'2000000', rate:'2.55', start_date: PY + '-10-15', end_date:'', invested_amount:'', interest_paid_override:'' });
+  put('cash_flows', { date: PY + '-12-20', type:'deposit', to_account_id:'A1', amount_to:'1200000', source:'自有', note:'' });
+  put('cash_flows', { date: PY + '-12-20', type:'deposit', to_account_id:'A1', amount_to:'1500000', source:'借款', loan_id:'L1', note:'房貸撥款' });
+  put('cash_flows', { date: PY + '-12-22', type:'deposit', to_account_id:'A2', amount_to:'650000', source:'自有', note:'' });
+  put('cash_flows', { date: Y + '-01-30', type:'transfer', from_account_id:'A1', to_account_id:'A3', amount_from:'500000', fx_rate:'31.60', amount_to:'', note:'換匯' });
+  put('cash_flows', { date: Y + '-03-25', type:'deposit', to_account_id:'A4', amount_to:'260000', source:'自有', note:'' });
+  const tr = (date, acct, market, symbol, side, qty, price, extra) => put('trades', { date, account_id:acct, market, symbol, side, qty:String(qty), price:String(price), fee:'', tax:'', fx_rate:'', note:'', ...(extra || {}) });
+  tr(Y + '-01-15', 'A1', 'TW', '2330', 'buy', 1000, 1050);
+  tr(Y + '-02-05', 'A3', 'US', 'AAPL', 'buy', 20, 230, { fx_rate:'31.55' });
+  tr(Y + '-02-05', 'A3', 'US', 'VOO', 'buy', 10, 520, { fx_rate:'31.55' });
+  tr(Y + '-04-08', 'A3', 'US', 'BND', 'buy', 30, 73, { fx_rate:'32.40' });
+  tr(Y + '-05-20', 'A1', 'TW', '00679B', 'buy', 5000, 28.5);
+  tr(Y + '-06-18', 'A1', 'TW', '2330', 'sell', 200, 1100);
+  tr(Y + '-08-12', 'A3', 'US', 'VOO', 'buy', 5, 560, { fx_rate:'30.10' });
+  const p50 = [180, 176, 182, 171, 186, 190, 194, 188, 196, 201, 198, 203];
+  const elapsed = new Date().getMonth() + 1;
+  for (let m = 1; m <= elapsed; m++) tr(`${Y}-${pad(m)}-06`, 'A2', 'TW', '0050', 'buy', m === 3 ? 1000 : 150, p50[m-1]);
+  put('funds', { id:'F1', name:'範例－台灣科技股票基金', currency:'TWD', asset_class:'股', region:'台', latest_nav:'131.2', nav_date: today() });
+  put('funds', { id:'F2', name:'範例－全球投資級債券基金', currency:'USD', asset_class:'債', region:'全球', latest_nav:'25.6', nav_date: today() });
+  put('fund_trades', { date: Y + '-04-01', account_id:'A4', fund_id:'F1', side:'sub', units:'500', nav:'120', fee:'900', fx_rate:'' });
+  put('fund_trades', { date: Y + '-07-01', account_id:'A4', fund_id:'F2', side:'sub', units:'200', nav:'25', fee:'50', fx_rate:'31.80' });
+  put('dividends', { ex_date: Y + '-03-17', pay_date: Y + '-04-09', account_id:'A1', kind:'stock', market:'TW', symbol:'2330', per_share:'5' });
+  put('dividends', { ex_date: Y + '-06-11', pay_date: Y + '-07-10', account_id:'A1', kind:'stock', market:'TW', symbol:'2330', per_share:'5' });
+  put('dividends', { ex_date: Y + '-07-17', pay_date: Y + '-08-12', account_id:'A2', kind:'stock', market:'TW', symbol:'0050', per_share:'1' });
+  put('dividends', { ex_date: Y + '-08-11', pay_date: Y + '-08-14', account_id:'A3', kind:'stock', market:'US', symbol:'AAPL', per_share:'0.26', fx_rate:'' });
+  put('dividends', { ex_date: Y + '-09-30', pay_date: Y + '-10-08', account_id:'A4', kind:'fund', fund_id:'F2', per_share:'0.08', fx_rate:'32.0' });
+  put('lending', { date: Y + '-09-05', account_id:'A1', symbol:'2330', qty:'500', gross:'3200', fee:'960', tax:'0' });
+  put('symbols', { market:'US', symbol:'BND', name:'Vanguard 總體債券 ETF', asset_class:'債', tax_type:'', quote_symbol:'', manual_price:'' });
+  const px = { 'TW|2330':['1450','台積電'], 'TW|0050':['205','元大台灣50'], 'TW|00679B':['27.8','元大美債20年'], 'US|AAPL':['268','Apple Inc'], 'US|VOO':['612','Vanguard S&P 500 ETF'], 'US|BND':['74.5','Vanguard Total Bond Market ETF'] };
+  Object.entries(px).forEach(([k,[p,n]]) => { const [m,s] = k.split('|'); put('prices', { id:k, market:m, symbol:s, price:p, name:n, source:'範例', fetched_at:'' }); });
+  put('prices', { id:'FX|USDTWD', market:'FX', symbol:'USDTWD', price:'31.2', name:'USD/TWD', source:'範例', fetched_at:'' });
+}
+
+/* ================= 啟動 ================= */
+loadDB();
+render();
+if (connected()) doRefresh();
+try { if ('serviceWorker' in navigator && /^https:$/.test(location.protocol) && !/claude/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => {}); } catch (e) {}
+</script>
+</body>
+</html>
